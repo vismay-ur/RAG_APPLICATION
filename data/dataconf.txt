@@ -1,0 +1,56 @@
+SFDC Accounts
+Overview
+This table contains data on business accounts in Salesforce. It has metadata taken directly from the Salesforce account object, as well as attributes from other Salesforce objects.
+Intended Audience
+This dataset is intended for use by revenue and marketing analysts. It provides details on Salesforce accounts that may not be available in other certified datasets and is intended to be a potential add-in to other analyses.
+How do I use this data?
+Via Snowflake - analytics.certified.sfdc_b2b_accounts (see example queries below
+Data Collection Methodology
+The account data comes primarily from the Salesforce account object. Other data from the D&B Company Profile and Enterprise Territory Management (ETM) objects is also brought in to enrich the account data.
+How often is this refreshed?
+There are 2 sync cadences to bear in mind when using the account data, and may cause some differences between what users see in the certified data set and what they might find in the Salesforce system itself. First, data is synced from Salesforce to Snowflake on an hourly basis* so changes made in the system will be reflected on the next hourly sync. Second, the B2B accounts model runs on an hourly basis and will reflect changes from the most recent sync to Snowflake.
+Critical Fields and Filters
+There are several common filters and dimensions used for analyses, below are some important fields to become familiar with:
+account_type - this differentiates Customers, Former Customers, and Prospects.
+account_regional_parent_account_id - this is the highest account within the global hierarchy that's in the same region as the business account.
+account_global_parent_account_id - this is the highest account within the global hierarchy, typically a global headquarters for a business.
+naics fields - these fields are decodes of the NAICS code assigned an account.
+naics_sector - indicated by the first two digits of the NAICS code, this is the highest level grouping.
+naics_subsector - indicated by the first three digits of the NAICS code, this is the second highest level grouping.
+naics_industry_group - indicated by the first four digits of the NAICS code, this is the third highest level grouping.
+naics_industry - indicated by the first five digits of the NAICS code, this is the second most granular grouping.
+naics_national_industry - indicated by the first six digits of the NAICS code, this is the most granular grouping.
+territory fields
+primary_territory_region - the sales region the account belongs to (APAC, EMEA, or North America).
+primary_territory_segment - the sales segment the account belongs to based on the size (or potential size) of the customer.
+primary_territory_coverage_model - the coverage model differentiates accounts with active ARR vs prospect accounts, which require separate sales teams.
+secondary_territory_region - the customer success region the account belongs to (APAC, EMEA, or North America).
+secondary_territory_segment - the customer success segment the account belongs to based on the size (or potential size) of the customer.
+tertiary_territory_region - the Flow sales region the account belongs to (APAC, EMEA, or North America).
+tertiary_territory_segment - the Flow sales segment the account belongs to based on the size (or potential size) of the customer.
+
+
+
+Examples:
+
+
+/* Get number of accounts by region and segment */
+SELECT primary_territory_region
+, primary_territory_segment
+, count(DISTINCT account_id_sfdc) AS count_accounts
+FROM analytics.certified.sfdc_b2b_accounts
+GROUP BY ALL
+ORDER BY 1,2
+
+/* Get the list of prospect accounts in a specific industry */
+SELECT account_id_sfdc
+, account_name_sfdc
+, primary_territory_region
+, primary_territory_segment
+, account_owner_name
+FROM analytics.certified.sfdc_b2b_accounts
+WHERE 1=1
+	AND account_type = 'Prospect'
+	AND naics_subsector = 'Hospitals'
+
+
