@@ -34,7 +34,7 @@ def load_faiss_index():
     print("Generating new FAISS index...")
 
     # Read the source document
-    with open("data/toxic_movie.txt", "r", encoding="utf-8") as f:
+    with open("data/dataconf.txt", "r", encoding="utf-8") as f:
         text = f.read()
 
     # Split into chunks
