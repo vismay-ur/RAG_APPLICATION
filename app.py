@@ -6,8 +6,8 @@ from utils.prompt import build_prompt
 from utils.completion import generate_completion
 
 
-st.title("RAG Pipeline Demo")
-st.write("This is a demo of a Retrieval-Augmented Generation (RAG) pipeline using Streamlit.")
+st.title("RAG Pipeline Pluralsight")
+st.write("This is a Prototype of a Retrieval-Augmented Generation (RAG) pipeline by Vismay.")
 
 query = st.text_input("Enter your question here:")
 
