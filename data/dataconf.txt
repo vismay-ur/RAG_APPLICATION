@@ -1,56 +1,401 @@
-SFDC Accounts
-Overview
-This table contains data on business accounts in Salesforce. It has metadata taken directly from the Salesforce account object, as well as attributes from other Salesforce objects.
-Intended Audience
-This dataset is intended for use by revenue and marketing analysts. It provides details on Salesforce accounts that may not be available in other certified datasets and is intended to be a potential add-in to other analyses.
-How do I use this data?
-Via Snowflake - analytics.certified.sfdc_b2b_accounts (see example queries below
-Data Collection Methodology
-The account data comes primarily from the Salesforce account object. Other data from the D&B Company Profile and Enterprise Territory Management (ETM) objects is also brought in to enrich the account data.
-How often is this refreshed?
-There are 2 sync cadences to bear in mind when using the account data, and may cause some differences between what users see in the certified data set and what they might find in the Salesforce system itself. First, data is synced from Salesforce to Snowflake on an hourly basis* so changes made in the system will be reflected on the next hourly sync. Second, the B2B accounts model runs on an hourly basis and will reflect changes from the most recent sync to Snowflake.
-Critical Fields and Filters
-There are several common filters and dimensions used for analyses, below are some important fields to become familiar with:
-account_type - this differentiates Customers, Former Customers, and Prospects.
-account_regional_parent_account_id - this is the highest account within the global hierarchy that's in the same region as the business account.
-account_global_parent_account_id - this is the highest account within the global hierarchy, typically a global headquarters for a business.
-naics fields - these fields are decodes of the NAICS code assigned an account.
-naics_sector - indicated by the first two digits of the NAICS code, this is the highest level grouping.
-naics_subsector - indicated by the first three digits of the NAICS code, this is the second highest level grouping.
-naics_industry_group - indicated by the first four digits of the NAICS code, this is the third highest level grouping.
-naics_industry - indicated by the first five digits of the NAICS code, this is the second most granular grouping.
-naics_national_industry - indicated by the first six digits of the NAICS code, this is the most granular grouping.
-territory fields
-primary_territory_region - the sales region the account belongs to (APAC, EMEA, or North America).
-primary_territory_segment - the sales segment the account belongs to based on the size (or potential size) of the customer.
-primary_territory_coverage_model - the coverage model differentiates accounts with active ARR vs prospect accounts, which require separate sales teams.
-secondary_territory_region - the customer success region the account belongs to (APAC, EMEA, or North America).
-secondary_territory_segment - the customer success segment the account belongs to based on the size (or potential size) of the customer.
-tertiary_territory_region - the Flow sales region the account belongs to (APAC, EMEA, or North America).
-tertiary_territory_segment - the Flow sales segment the account belongs to based on the size (or potential size) of the customer.
+This is the cohorted funnel final exposure, which is a unique way of attributing sales funnel layers to each other. Rather than attributing each step of the funnel in isolation, it recognizes and maintains the linkages between AQLs and opportunities over time. Once an AQL is linked to an opportunity, it does not get reassigned to a different one. This creates a cascade effect where each attribution excludes the ones before it, providing a more holistic and realistic view of opportunity generation at scale.
+This model is especially useful for analyzing conversion rates in larger datasets.
+
+Its grain is on the Interaction ID, Opportunity ID, and the count of the response.
+
+Certificate
+
+Verified
+Service-account-atlan-backend
+5 months ago
+Owners
+
+
+Analytics Engineering
+
+Column Preview
 
 
 
+#	Column Name	Column Type	Description	
+1
+INTERACTION_ID
+TEXT
+The campaign member ID. This is the closest thing to a singular ID you'll find on the model. If an opportunity or AQL was unable to be attributed to a campaign member, we append the opp/AQL as another row, in which case you will notice an opportunity or AQL ID in this column.
+
+See more
+2
+COUNT_RESPONSE
+NUMBER
+count_response will be populated with '1' for each record in the interactions fact_group that has responded, and a 0 for each record that has not.
+
+See more
+3
+DATE_RESPONSE
+TIMESTAMP_NTZ
+The date the interaction happened.
+
+4
+DATE_CAMPAIGN_START
+DATE
+The date the campaign started.
+
+5
+CAMPAIGN_ID
+TEXT
+ID of the Campaign to which this Lead or Contact is associated. This field can be used to join \n campaign data with the campaign member.
+
+See more
+6
+PARENT_ID
+TEXT
+The ID of the account's parent account, if available.
+
+7
+PARENT_NAME
+TEXT
+The name of the account's parent account, if available.
+
+8
+CAMPAIGN_TYPE
+TEXT
+The type of the campaign
+
+9
+CAMPAIGN_SUBTYPE
+TEXT
+The subtype of the campaign
+
+10
+CAMPAIGN_NAME
+TEXT
+The name of the campaign
+
+11
+CAMPAIGN_THEME
+TEXT
+The theme of the campaign associated to the interaction ID. It's the broad message that the campaign is designed to push.
+
+12
+PROGRAM_TYPE
+TEXT
+Program type assigned by Revenue Analytics, derived from response data by combining campaign type, campaign subtype, and UTM term.
+The final classification is mapped using the campaign_categories seed file and represents high-level groupings such as 'Paid', 'Organic', or 'DG Program'.
+
+See more
+13
+PROGRAM_SUB_TYPE
+TEXT
+Program subtype assigned by Revenue Analytics, derived from response data by combining campaign type, campaign subtype, and UTM term.
+The final classification is mapped using the campaign_categories seed file and includes more granular values like 'Paid Search', 'Organic Social', or 'Webinar'.
+
+See more
+14
+IS_EXPAND
+BOOLEAN
+This column represents if an interaction is expand or renew, which checks if the interaction occurred within 180 days of positive ARR.
+
+See more
+15
+REGION
+TEXT
+Region is a property of a territory, indicating the second highest level division of territories. Region is usually a geographical signifier, indicating the general area of the world the account is within.
 Examples:
+* APAC (Asia, Pacific, China)
+* EMEA (Europe, Middle East, Africa)
+* North America
+
+See more
+16
+SUBREGION
+TEXT
+Subregion is a property of a territory, indicating the third highest level division of territories. Subregion is usually a geographical signifier, indicating a more specific area of the world the account is within.
+Examples:
+* INDIA
+* MIDDLE EAST
+* Midwest
+
+See more
+17
+PUBLIC_SECTOR_SUB_TYPE
+TEXT
+18
+ACCOUNT_NAME
+TEXT
+The SFDC business account name at the time of snapshot date
+
+19
+ACCOUNT_ID
+TEXT
+The account ID of the response's contact or lead. If the response is from a lead, this will be the mapped account ID, which is pulled directly from Salesforce existing_account__c field.
+
+See more
+20
+ACCOUNT_OWNER
+TEXT
+The name of the account owner associated with the account / planid.
 
 
-/* Get number of accounts by region and segment */
-SELECT primary_territory_region
-, primary_territory_segment
-, count(DISTINCT account_id_sfdc) AS count_accounts
-FROM analytics.certified.sfdc_b2b_accounts
+Showing 1-20 of 97
+
+Readme
+
+Edit
+Response Cohorted Funnel
+Overview
+The Cohorted Funnel dataset is one of the two final stops in our marketing funnel pipeline. It's like the grand finale, containing data that tracks the entire journey through the marketing funnel, starting from campaign member interactions and progressing through to AQLs (Account Qualified Leads) and opportunities. Essentially, it helps us understand how well things are converting in bulk.
+
+
+
+Its grain is on the interaction ID and opportunity ID, so we should only have one interaction per opportunity.
+
+
+
+Intended Audience
+The Cohorted Funnel dataset is meant to be used by marketing analysts. It focuses primarily on marketing-centric metrics, with a particular interest in marketing-attributed opportunity. Marketing analysts can easily compare conversion rates using this data set.
+
+
+
+How do I use this data?
+You can find the cohorted funnel in the following ways:
+
+In Snowflake, you can find it in analytics.certified.ff_vw_response_cohorted_funnel.
+
+In Tableau, you can find the datasource extract here.
+
+
+
+Data Collection Methodology
+The Cohorted Funnel dataset is updated regularly through a series of dbt models that run every six to seven hours to align with our customer SLA requirements. The update schedule is synchronized with the start of business hours in Salt Lake City, Dublin, and Sydney to support our regional reporting in North America, EMEA, and APAC.
+
+
+
+Now, where does all this data come from? Well, it starts off in Salesforce where we pull from various objects. From there, it goes through a bunch of steps using dbt models to keep things tidy and well-organized. Once that’s sorted, the Cohorted Funnel dataset takes over. It starts matching up all those Automated Qualified Leads (AQLs) and opportunities to the right interactions. Basically, we try to make sure each interaction ends up with its own AQL and opportunity tagged to it, making it super clear who did what.
+
+
+
+
+
+Pictured: A hilariously oversimplified version of cohorted funnel
+
+
+
+Want more details? Read below!
+
+
+Attribution Model - What Makes It Unique?
+
+Our attribution model for the Cohorted Funnel is a bit different from the Full Funnel model. In the Full Funnel, each step of the funnel (like opportunities or AQLs) gets attributed independently, without caring if an AQL or interaction was previously linked to another opportunity. It's accurate, and based on predefined business rules. It's most useful for looking up small groups of opportunities or AQLs or interactions.
+
+
+
+Cohorted Funnel's Twist
+
+But in the Cohorted Funnel, we do things a bit different. We don't attribute each step in isolation. If an AQL was linked to an opportunity before, it won't magically link to another opportunity later. This creates a cascade effect where each attribution before the current one is excluded. It offers a more realistic picture of how opportunities come to exist in bulk. It's most useful for looking at conversion rates en masse.
+
+
+
+The Big Question: Attribution Order
+
+So, you might be wondering, how do we decide which attribution comes first? It's a great question. Since an attribution can't happen more than once, we've got a system in place to determine the order.
+
+
+
+Cohorted Attribution
+Unraveling the Attribution Magic
+
+To understand our Cohorted Funnel model, we're going to take a journey through the magical land of attribution. Buckle up, it's going to be a ride!
+
+
+
+Starting with Interactions
+
+The first thing we do is start off with gathering all the interactions (campaign members) we care about. Let's walk through how we do attribution by showing you with example pictures.
+
+
+
+Each row in the picture above represents an interaction
+
+Each row in this table represents an interaction - a campaign member interaction in Salesforce. These interactions are crucial for our analysis. We only pull interactions that occurred within the past two years, as indicated by the last run date of the Cohorted Funnel.
+
+
+
+AQL Attribution
+
+Next up, we try to find all AQLs that could be attributed to these interactions. We do this by linking interactions to AQLs using contact or lead IDs. Since all campaign members link to people in our CRM (Salesforce), we're essentially just connecting the dots. But we only attribute interactions that happened within 90 days before the AQL was created. This step may create some duplicates, since people often interact multiple times with our advertisements before becoming leads. Here is an example you can use to understand how that looks:
+
+
+
+
+
+As you can see, multiple AQLs all have the same interaction attributed to them.
+
+
+
+Here is what happens when we run the AQL attribution for step one:
+
+
+
+Note that we now have duplicates! Oh no!
+
+See those duplicates? We can't have that! So, we use a tiebreaker. We pick the AQL that happened closest to the interaction date, making sure each interaction attributes just once.
+
+
+
+
+
+Note that we now only have the original number of interactions and that we have no duplicates. Also pay attention to interaction H! It was originally attributed to AQL 1, but since interaction C was a better choice overall it went with that.
+
+This is a common pattern you will see throughout this process. First we attribute, then we narrow down.
+
+Now, with our clean list of interactions and their corresponding AQLs, we move on.
+
+
+
+Opportunity Attribution
+
+Time to find opportunities! This is a multi-step process, starting with the most accurate form of interaction to opportunity attribution - Full Funnel's AQL attribution model - and ending with the least - account joins.
+
+
+
+We start with the full funnel attribution logic, which already maps AQLs to opportunities. However, just like with interactions, different opportunities can attribute to the same AQLs within Full Funnel. So, we apply the same tiebreaker concept to find the most proximate AQL for each opportunity.
+
+
+
+
+
+Note that we can only find opportunities here for interactions that already have AQLs attributed
+
+
+
+
+
+Now we're back to the same amount of interactions!
+
+Wait, is that all? QMA Interaction
+
+No! Here's where it gets interesting. We start using the cascading attribution approach. Instead of sticking with AQL attribution, we look to attribute opportunities directly to responses using QMA (Qualified Marketing Activity) interactions. This often means skipping AQLs entirely.
+
+QMA is defined within the Full Funnel dataset already, and is an entirely too complicated of a topic to discuss here. You can find a brief overview here.
+
+
+
+
+
+QMA interaction logic attribution
+
+
+
+
+
+See the pattern? We find the most proximate response to each opportunity
+
+
+
+Contact ID Attribution
+
+Now we're on to opportunity attribution through interactions using contact IDs. If the opportunity's primary contact matches the response's contact ID, and the opportunity was created after the interaction date, it's considered attributable.
+
+
+
+
+
+Post contact attribution
+
+
+
+
+
+Post tie-breaker
+
+Account ID Attribution
+
+Finally, the last form of attribution - account ID attribution. If any non-attributed opportunities share account IDs with any non-attributed responses (and those responses happened before the opportunity), then we link them together. You know the drill, we attribute, then narrow it down based on the proximity of interaction IDs to opportunity IDs.
+
+
+
+
+
+Interaction F now has two opportunities attributed to it
+
+
+
+
+
+Post tie-breaker. Now all interactions have opportunities! This is an ideal world
+
+And there you have it! At the end of this process, we have a list of interactions along with their corresponding AQLs and Opportunity IDs.
+
+
+
+But Wait, There's More
+One last crucial detail about the cohorted funnel: in the examples above, you might have noticed that there's no Opp B attributed to any interaction. This could be problematic, especially when you want to calculate the total counts of all opportunities alongside their corresponding conversion data. To address this issue, we take an extra step to make the math feasible:
+
+
+
+
+
+It might not look pretty, but it gets the job done!
+
+And that's a wrap! If you have any questions about how the cohorted funnel works, don't hesitate to reach out to the full funnel team - Chris Roberts, Ethan Curtis, or Jeff Trapp. We're here to help!
+
+
+
+Critical Fields & Filters
+Dimensional Data
+
+date_response - The date the contact or lead responded to a particular campaign.
+
+campaign_type/subtype - Said campaign's type and subtype. This is useful for measuring channel effectiveness.
+
+region/subregion - The region/subregion of the lead or contact's account. Useful for measuring conversion rate between our major regions (APAC, EMEA, NA).
+
+date_aql - The date the AQL occurred.
+
+attribution - This flag indicates at what point in the process the interaction was attributed to either an AQL or opportunity. Useful for debugging.
+
+sales_motion_flag - The purpose of this flag is to indicate how an opportunity was mostly serviced by our Go To Market team. For instance, if the opportunity was generated from AQL work, it will be labelled as 'AQL Sourced'.
+
+
+
+Fact Data
+
+count_response - A convenience column useful for summing the responses.
+
+count_aql - A convenience column useful for summing the AQLs.
+
+count_sao - A convenience column useful for summing the number of opportunities approved in a timeframe.
+
+bookings_amount - The bookings amount at the time of the SAO. Use this for pipeline generation reporting.
+
+bookings_amount_won - The bookings amount won. Use this for bookings reporting.
+
+velocity_response_to_aql_days - The number of days between when a response occurred and when its AQL was created.
+
+velocity_response_to_opp_days - The number of days between when a response occurred and when its opportunity was approved.
+
+
+
+Commonly Used Queries
+This query returns the count of responses for a given timeframe by quarter, as well as how many of those responses converted into AQLs, and how many converted into SAOs.
+
+SELECT QUARTER(date_response) AS q_date_response
+	, SUM(count_response) AS response_count
+	, SUM(count_aql) AS aql_count
+	, SUM(count_sao) AS sao_count
+FROM certified.ff_vw_response_cohorted_funnel
+WHERE date_response >= '2024-01-01'
+	AND date_response < '2025-01-01'
 GROUP BY ALL
-ORDER BY 1,2
 
-/* Get the list of prospect accounts in a specific industry */
-SELECT account_id_sfdc
-, account_name_sfdc
-, primary_territory_region
-, primary_territory_segment
-, account_owner_name
-FROM analytics.certified.sfdc_b2b_accounts
-WHERE 1=1
-	AND account_type = 'Prospect'
-	AND naics_subsector = 'Hospitals'
+
+FAQ
+When should I use Cohorted Funnel versus Full Funnel?
+
+Full Funnel is a more accurate rendering of business logic if you look at individual records. If you want to see how MSO defines conversion rates, then use this data set.
+
+
+
+ERD
 
 
