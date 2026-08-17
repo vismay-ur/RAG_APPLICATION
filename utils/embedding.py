@@ -28,7 +28,7 @@ def get_embedding(text, model="text-embedding-3-small"):
         headers=headers,
         json=payload,
         verify=False,
-        timeout=30,
+        timeout=120,
     )
 
     print("Status:", response.status_code)
